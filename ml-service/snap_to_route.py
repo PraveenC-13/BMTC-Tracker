@@ -5,6 +5,12 @@ Raw lat/lng means nothing. Stop order is what drives ETA.
 """
 from geopy.distance import geodesic
 
+def is_ping_accurate(ping, max_accuracy_metres=100):
+    """Reject GPS pings with poor accuracy — common in urban canyons near tall buildings."""
+    accuracy = ping.get("accuracy_m", 0)
+    if accuracy and accuracy > max_accuracy_metres:
+        return False
+    return True
 
 def snap_to_nearest_stop(ping_lat, ping_lng, stops):
     """
