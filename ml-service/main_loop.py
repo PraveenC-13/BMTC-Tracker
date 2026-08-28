@@ -60,6 +60,7 @@ def main():
 
             # step 1: snap every ping to its nearest stop
             enriched = []
+            device_last_stop = {}  # prevents GPS noise causing backwards stop jumps
             for ping in direction_pings:
                 stop, dist = snap_to_nearest_stop(ping["lat"], ping["lng"], direction_stops)
                 enriched.append({
