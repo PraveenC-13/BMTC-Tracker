@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#f6f9fc" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>BMTC 500D — Morning Transit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1048/1048314.png" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="morning-ambient"></div>
+  
+  <div class="app-viewport">
+    <!-- Morning Header -->
+    <header class="morning-header">
+      <div class="header-content">
+        <div class="brand-cluster">
+          <div class="brand-bus-badge" title="BMTC 500D">
+            <!-- Modern Minimalist Bus SVG Icon -->
+            <svg class="bus-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="4" y="3" width="16" height="15" rx="3" />
+              <path d="M4 11h16" />
+              <path d="M8 7h.01M16 7h.01" />
+              <path d="M6 18v2a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-2" />
+              <path d="M15 18v2a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-2" />
+              <circle cx="8" cy="14" r="1" fill="currentColor" />
+              <circle cx="16" cy="14" r="1" fill="currentColor" />
+            </svg>
+          </div>
+          <div class="brand-titles">
+            <h1>BMTC <span>500D</span></h1>
+            <p>Fresh Morning Transit</p>
+          </div>
+        </div>
+
+        <div class="header-status">
+          <div class="live-pill" id="live-indicator">
+            <span class="sun-dot"></span>
+            <span>LIVE COMMUTE</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="morning-main">
+      <section class="console-column">
+        <!-- Quick Insight Cards -->
+        <div class="kpi-deck">
+          <div class="glass-surface kpi-card">
+            <span class="kpi-label">Route Span</span>
+            <span class="kpi-metric">22.7 <small>km</small></span>
+          </div>
+          <div class="glass-surface kpi-card">
+            <span class="kpi-label">Corridor Stops</span>
+            <span class="kpi-metric" id="total-stops">36 <small>stops</small></span>
+          </div>
+          <div class="glass-surface kpi-card">
+            <span class="kpi-label">Morning Flow</span>
+            <span class="kpi-metric text-fresh" id="beacon-status">ACTIVE</span>
+          </div>
+        </div>
+
+        <!-- Direction Switcher -->
+        <div class="direction-dock glass-surface">
+          <button class="dir-toggle active" id="t1">
+            <span>Hebbal ➔ Silk Board</span>
+          </button>
+          <button class="dir-toggle" id="t2">
+            <span>Silk Board ➔ Hebbal</span>
+          </button>
+        </div>
+
+        <!-- Stop Selector Panel -->
+        <div class="glass-surface selector-panel">
+          <div class="input-duo">
+            <div class="input-shell">
+              <label><span class="indicator-ring ring-origin"></span> Boarding Point</label>
+              <select id="sel-b">
+                <option value="">Where are you boarding?</option>
+              </select>
+            </div>
+            <div class="input-shell">
+              <label><span class="indicator-ring ring-dest"></span> Destination</label>
+              <select id="sel-d">
+                <option value="">Where are you heading?</option>
+              </select>
+            </div>
+          </div>
+          <button class="morning-button" id="eta-btn">
+            <span>Check Live Arrival</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+
+        <!-- ETA Result Console -->
+        <div class="glass-surface eta-console" id="eta-card">
+          <div class="eta-meta-bar">
+            <div>
+              <span class="sub-label">Bus Currently Approaching</span>
+              <h4 class="bus-location-name" id="bus-at">—</h4>
+            </div>
+            <span class="tag-morning">EN ROUTE</span>
+          </div>
+
+          <div class="eta-hero-stat">
+            <div class="eta-counter" id="eta-b">—</div>
+            <div class="eta-hero-caption">Minutes until arrival at <strong id="lbl-b">—</strong></div>
+          </div>
+
+          <div class="eta-detail-strip">
+            <div class="detail-row">
+              <span class="text-dim">Destination Station</span>
+              <span class="text-prominent" id="lbl-d">—</span>
+            </div>
+            <div class="detail-row">
+              <span class="text-dim">Destination ETA</span>
+              <span class="text-prominent text-accent" id="eta-d">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Offline / Standby Notice -->
+        <div class="glass-surface standby-message" id="nodata">
+          <div class="standby-glyph">🌤️</div>
+          <p>No active bus broadcast found on this segment.<br>Share your live location to help morning commuters.</p>
+        </div>
+      </section>
+
+      <!-- Stops Sequence Timeline -->
+      <section class="timeline-column">
+        <div class="glass-surface timeline-vault">
+          <div class="timeline-header">
+            <h3>Route Progression</h3>
+            <span class="timeline-counter">Morning Schedule</span>
+          </div>
+          <div class="timeline-scroll" id="rlist"></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Bottom Location Action Bar -->
+    <footer class="morning-footer">
+      <div class="footer-container">
+        <button class="broadcast-trigger" id="gps-btn">
+          <span class="gps-pulse" id="gps-ico"></span>
+          <span id="gps-lbl">Broadcast Bus Location</span>
+        </button>
+      </div>
+    </footer>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
