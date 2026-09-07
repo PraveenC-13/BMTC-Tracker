@@ -1,12 +1,16 @@
-"""
-consumer.py — reads GPS pings from Kafka every 15 seconds.
-Needs a real Kafka broker running (docker-compose.yml).
-"""
-from kafka import KafkaConsumer
 import json
+import os
+from kafka import KafkaConsumer
 
 
-def get_consumer(bootstrap_servers="localhost:9092"):
+def get_consumer():
+    bootstrap_servers = os.getenv(
+        "KAFKA_BROKER",
+        "localhost:9092"
+    )
+
+    print(f"Connecting to Kafka at {bootstrap_servers}")
+
     return KafkaConsumer(
         "location-pings",
         bootstrap_servers=bootstrap_servers,
@@ -18,8 +22,11 @@ def get_consumer(bootstrap_servers="localhost:9092"):
 
 def consume_batch(consumer, timeout_ms=15000):
     records = consumer.poll(timeout_ms=timeout_ms)
+
     pings = []
+
     for _tp, messages in records.items():
         for msg in messages:
             pings.append(msg.value)
+
     return pings

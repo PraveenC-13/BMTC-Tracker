@@ -1,13 +1,22 @@
-"""
-db.py — loads stop data from Postgres at startup.
-Python never writes location_pings — that is Go's job.
-Python only reads stops for snap-to-route math.
-"""
+import os
 import psycopg2
 
 
-def get_connection(host="localhost", port=5432, dbname="bmtc", user="bmtc", password="bmtc"):
-    return psycopg2.connect(host=host, port=port, dbname=dbname, user=user, password=password)
+def get_connection():
+    database_url = os.getenv("DATABASE_URL")
+
+    if database_url:
+        print("Connecting to PostgreSQL using DATABASE_URL")
+        return psycopg2.connect(database_url)
+
+    print("Connecting to local PostgreSQL")
+    return psycopg2.connect(
+        host="localhost",
+        port=5432,
+        dbname="bmtc",
+        user="bmtc",
+        password="bmtc",
+    )
 
 
 def get_stops_for_direction(conn, direction_id):
@@ -21,8 +30,15 @@ def get_stops_for_direction(conn, direction_id):
             WHERE direction_id = %s
             ORDER BY stop_order
         """, (direction_id,))
+
         rows = cur.fetchall()
+
     return [
-        {"stop_order": r[0], "stop_name": r[1], "lat": r[2], "lng": r[3]}
+        {
+            "stop_order": r[0],
+            "stop_name": r[1],
+            "lat": r[2],
+            "lng": r[3]
+        }
         for r in rows
     ]

@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
-	"strings"
 )
 
 type Server struct {
@@ -89,7 +89,16 @@ func (s *Server) HandleGetETA(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	writeJSON(w, http.StatusOK, eta)
+
+	var response interface{}
+	if err := json.Unmarshal([]byte(eta), &response); err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{
+			"error": "invalid ETA data",
+		})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, response)
 }
 
 // HandleGetStops — returns ordered stop list for a direction
@@ -122,17 +131,12 @@ func (s *Server) routes() *http.ServeMux {
 	mux.HandleFunc("/stops", s.HandleGetStops)
 	mux.HandleFunc("/health", s.HandleHealth)
 	// serve the website frontend from the frontend folder
-	mux.Handle("/", http.FileServer(http.Dir("../frontend")))
-	return mux
-}
-
-func getEnv(key, fallback string) string {
-	// reads environment variable, returns fallback if not set
-	val := strings.TrimSpace(key)
-	if val == "" {
-		return fallback
+	frontendDir := os.Getenv("FRONTEND_DIR")
+	if frontendDir == "" {
+		frontendDir = "../frontend"
 	}
-	return fallback
+	mux.Handle("/", http.FileServer(http.Dir(frontendDir)))
+	return mux
 }
 
 // corsMiddleware handles preflight requests and sets CORS headers

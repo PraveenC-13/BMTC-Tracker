@@ -12,26 +12,22 @@ type DB struct {
 	conn *sql.DB
 }
 
-func NewDB(databaseURL string) (*DB, error) {
-	if databaseURL == "" {
-		return nil, fmt.Errorf("DATABASE_URL is empty")
-	}
-
-	conn, err := sql.Open("postgres", databaseURL)
+func NewDB(host, port, user, password, dbname string) (*DB, error) {
+	dsn := fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname,
+	)
+	conn, err := sql.Open("postgres", dsn)
 	if err != nil {
 		return nil, err
 	}
-
 	if err := conn.Ping(); err != nil {
 		return nil, err
 	}
-
 	log.Println("connected to postgres")
 	return &DB{conn: conn}, nil
 }
 
-// RegisterDeviceIfNew inserts a new device UUID if not seen before.
-// This is the privacy layer — we never store names or phone numbers.
 func (d *DB) RegisterDeviceIfNew(deviceID string) error {
 	_, err := d.conn.Exec(
 		`INSERT INTO devices (device_id) VALUES ($1) ON CONFLICT (device_id) DO NOTHING`,

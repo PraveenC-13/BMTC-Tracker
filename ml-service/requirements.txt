@@ -1,0 +1,7 @@
+kafka-python==2.2.15
+psycopg2-binary==2.9.9
+redis==5.0.4
+numpy==1.26.4
+scikit-learn==1.4.2
+geopy==2.4.1
+requests==2.31.0

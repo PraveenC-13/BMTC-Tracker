@@ -14,20 +14,35 @@ func envOr(key, fallback string) string {
 }
 
 func main() {
-	// connect to postgres
-	db, err := NewDB(envOr("DATABASE_URL", ""))
+
+	// PostgreSQL configuration
+	dbHost := envOr("DB_HOST", "localhost")
+	dbPort := envOr("DB_PORT", "5432")
+	dbUser := envOr("DB_USER", "bmtc")
+	dbPassword := envOr("DB_PASSWORD", "bmtc")
+	dbName := envOr("DB_NAME", "bmtc")
+
+	db, err := NewDB(
+		dbHost,
+		dbPort,
+		dbUser,
+		dbPassword,
+		dbName,
+	)
 	if err != nil {
 		log.Fatal("postgres connection failed: ", err)
 	}
+	defer db.conn.Close()
 
-	// connect to redis
-	redisClient := NewRedisClient(envOr("REDIS_ADDR", "localhost:6379"))
+	// Redis
+	redisAddr := envOr("REDIS_ADDR", "localhost:6379")
+	redisClient := NewRedisClient(redisAddr)
 
-	// connect to kafka
-	producer := NewPingProducer(envOr("KAFKA_BROKER", "localhost:9092"))
+	// Kafka
+	kafkaBroker := envOr("KAFKA_BROKER", "localhost:9092")
+	producer := NewPingProducer(kafkaBroker)
 	defer producer.Close()
 
-	// wire everything into the server
 	server := &Server{
 		db:       db,
 		redis:    redisClient,
@@ -35,6 +50,10 @@ func main() {
 	}
 
 	port := envOr("PORT", "8080")
+
 	log.Println("BMTC backend running on port " + port)
-	log.Fatal(http.ListenAndServe(":"+port, server.routes()))
+
+	log.Fatal(
+		http.ListenAndServe(":"+port, server.routes()),
+	)
 }

@@ -1,6 +1,6 @@
 const API = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
   ? "http://localhost:8080"
-  : ""; //voi paste railway link here
+  : "YOUR_RENDER_BACKEND_URL"; //voi paste railway link here
 
 let dir = 1;
 let stops = [];
@@ -239,10 +239,10 @@ function stopGPS() {
 }
 
 async function sendPing(pos) {
-  let id = sessionStorage.getItem("bmtc_id");
+  let id = localStorage.getItem("bmtc_id");
   if (!id) {
-    id = "web-" + Math.random().toString(36).substr(2, 10);
-    sessionStorage.setItem("bmtc_id", id);
+    id = crypto.randomUUID();
+    localStorage.setItem("bmtc_id", id);
   }
   try {
     await fetch(`${API}/ping`, {
