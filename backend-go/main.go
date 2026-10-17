@@ -1,9 +1,9 @@
 package main
 
 import (
-	"log"
-	"net/http"
-	"os"
+	"log"      //used for printing mess/err
+	"net/http" //gives u Go's HTTP server functionality
+	"os"       //used to read environment variable (ex. DB_HOST , DB_USER, DB_PORT)
 )
 
 func envOr(key, fallback string) string {
