@@ -1,55 +1,54 @@
 CREATE EXTENSION IF NOT EXISTS postgis;
 
-CREATE TABLE routes (
+CREATE TABLE IF NOT EXISTS routes (
     route_id        SERIAL PRIMARY KEY,
     route_number    TEXT NOT NULL UNIQUE,
     source          TEXT,
     destination     TEXT,
-    path            GEOGRAPHY(LINESTRING,4326)
+    path            GEOGRAPHY(LINESTRING, 4326)
 );
 
-CREATE TABLE routes_direction (
-    direction_id        SERIAL PRIMARY KEY,
-    route_id            INT NOT NULL REFERENCES routes(route_id) ON DELETE CASCADE,
-    direction           VARCHAR(10) NOT NULL CHECK (direction IN ('UP','DOWN')),
-    source              TEXT NOT NULL,
-    destination         TEXT NOT NULL,
+CREATE TABLE IF NOT EXISTS routes_direction (
+    direction_id    SERIAL PRIMARY KEY,
+    route_id        INT NOT NULL REFERENCES routes(route_id) ON DELETE CASCADE,
+    direction       VARCHAR(10) NOT NULL CHECK (direction IN ('UP', 'DOWN')),
+    source          TEXT NOT NULL,
+    destination     TEXT NOT NULL,
     UNIQUE (route_id, direction)
 );
 
-CREATE TABLE stops (
+CREATE TABLE IF NOT EXISTS stops (
     stop_id         SERIAL PRIMARY KEY,
     direction_id    INT NOT NULL REFERENCES routes_direction(direction_id) ON DELETE CASCADE,
     route_id        INT NOT NULL REFERENCES routes(route_id) ON DELETE CASCADE,
     stop_name       TEXT NOT NULL,
     stop_order      INT NOT NULL,
-    location        GEOGRAPHY(POINT,4326) NOT NULL,
+    location        GEOGRAPHY(POINT, 4326) NOT NULL,
     UNIQUE (direction_id, stop_order)
 );
 
-CREATE INDEX idx_stops_route_order ON stops(route_id, stop_order);
+CREATE INDEX IF NOT EXISTS idx_stops_route_order ON stops(route_id, stop_order);
 
-CREATE TABLE devices (
-    device_id       UUID PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS devices (
+    device_id       VARCHAR(64) PRIMARY KEY,
     created_at      TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE TABLE location_pings (
+CREATE TABLE IF NOT EXISTS location_pings (
     id              BIGSERIAL PRIMARY KEY,
-    device_id       UUID NOT NULL REFERENCES devices(device_id),
+    device_id       VARCHAR(64) NOT NULL REFERENCES devices(device_id),
     direction_id    INT NOT NULL REFERENCES routes_direction(direction_id),
     from_stop_order INT NOT NULL,
-    location        GEOGRAPHY(POINT,4326) NOT NULL,
+    location        GEOGRAPHY(POINT, 4326) NOT NULL,
     speed_mps       REAL,
     heading         REAL,
     recorded_at     TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_location_pings_location ON location_pings USING GIST(location);
+CREATE INDEX IF NOT EXISTS idx_location_pings_location ON location_pings USING GIST(location);
+CREATE INDEX IF NOT EXISTS idx_pings_route_times ON location_pings(direction_id, recorded_at);
 
-CREATE INDEX idx_pings_route_times ON location_pings(direction_id, recorded_at);
-
-CREATE TABLE segment_travel_time (
+CREATE TABLE IF NOT EXISTS segment_travel_time (
     id              BIGSERIAL PRIMARY KEY,
     direction_id    INT NOT NULL REFERENCES routes_direction(direction_id),
     from_stop_order INT NOT NULL,
@@ -59,21 +58,27 @@ CREATE TABLE segment_travel_time (
     recorded_date   DATE NOT NULL DEFAULT CURRENT_DATE
 );
 
-CREATE INDEX idx_segment_lookup ON segment_travel_time(direction_id, from_stop_order, hours_of_day);
+CREATE INDEX IF NOT EXISTS idx_segment_lookup ON segment_travel_time(direction_id, from_stop_order, hours_of_day);
 
-ALTER TABLE segment_travel_time
-ADD CONSTRAINT chk_stop_order
-CHECK (to_stop_order > from_stop_order);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_stop_order') THEN
+        ALTER TABLE segment_travel_time ADD CONSTRAINT chk_stop_order CHECK (to_stop_order > from_stop_order);
+    END IF;
+END $$;
 
-INSERT INTO routes (route_number, source, destination)
-VALUES ('500D', 'Hebbal', 'Central Silk Board');
+INSERT INTO routes (route_id, route_number, source, destination)
+VALUES (1, '500D', 'Hebbal', 'Central Silk Board')
+ON CONFLICT (route_number) DO NOTHING;
 
-INSERT INTO routes_direction (route_id, direction, source, destination)
+INSERT INTO routes_direction (direction_id, route_id, direction, source, destination)
 VALUES
-(1, 'UP', 'Hebbal', 'Central Silk Board'),
-(1, 'DOWN', 'Central Silk Board', 'Hebbal');
+(1, 1, 'UP', 'Hebbal', 'Central Silk Board'),
+(2, 1, 'DOWN', 'Central Silk Board', 'Hebbal')
+ON CONFLICT (route_id, direction) DO NOTHING;
 
-INSERT INTO stops (direction_id , route_id, stop_name, stop_order, location) VALUES
+-- 500D UP (direction_id = 1)
+INSERT INTO stops (direction_id, route_id, stop_name, stop_order, location) VALUES
 (1, 1, 'Hebbala Bridge', 1, ST_GeogFromText('SRID=4326;POINT(77.593906 13.042196)')),
 (1, 1, 'Kempapura', 2, ST_GeogFromText('SRID=4326;POINT(77.600525 13.043922)')),
 (1, 1, 'Veerannapalya', 3, ST_GeogFromText('SRID=4326;POINT(77.613195 13.042224)')),
@@ -109,7 +114,8 @@ INSERT INTO stops (direction_id , route_id, stop_name, stop_order, location) VAL
 (1, 1, 'Depot-25 Central Silk Board', 33, ST_GeogFromText('SRID=4326;POINT(77.642726 12.919122)')),
 (1, 1, 'HSR Layout 14th Main', 34, ST_GeogFromText('SRID=4326;POINT(77.650436 12.924297)')),
 (1, 1, 'SI Apartment HSR Layout', 35, ST_GeogFromText('SRID=4326;POINT(77.629500 12.916593)')),
-(1, 1, 'Central Silk Board', 36, ST_GeogFromText('SRID=4326;POINT(77.624154 12.917396)'));
+(1, 1, 'Central Silk Board', 36, ST_GeogFromText('SRID=4326;POINT(77.624154 12.917396)'))
+ON CONFLICT (direction_id, stop_order) DO NOTHING;
 
 INSERT INTO stops (direction_id, route_id, stop_name, stop_order, location) VALUES
 (2, 1, 'Central Silk Board', 1, ST_GeogFromText('SRID=4326;POINT(77.624199 12.917749)')),
@@ -140,14 +146,84 @@ INSERT INTO stops (direction_id, route_id, stop_name, stop_order, location) VALU
 (2, 1, 'Horamavu Signal', 26, ST_GeogFromText('SRID=4326;POINT(77.654554 13.019409)')),
 (2, 1, 'Babusapalya', 27, ST_GeogFromText('SRID=4326;POINT(77.646753 13.022709)')),
 (2, 1, 'Kalyananagara 80ft Road', 28, ST_GeogFromText('SRID=4326;POINT(77.636364 13.026421)')),
-(2, 1, 'Kalyananagara', 29, ST_GeogFromText('SRID=4326;POINT(77.636389 13.026436)')),
+(2, 1, 'Kalyananagara', 29, ST_GeogFromText('SRID=4326;POINT(77.636890 13.026436)')),
 (2, 1, 'Hennur Junction', 30, ST_GeogFromText('SRID=4326;POINT(77.631087 13.029826)')),
 (2, 1, 'HBR Layout', 31, ST_GeogFromText('SRID=4326;POINT(77.625802 13.037957)')),
 (2, 1, 'Nagawara Junction', 32, ST_GeogFromText('SRID=4326;POINT(77.624382 13.039747)')),
 (2, 1, 'Manyatha Tech Park', 33, ST_GeogFromText('SRID=4326;POINT(77.618585 13.040852)')),
 (2, 1, 'Veerannapalya', 34, ST_GeogFromText('SRID=4326;POINT(77.613760 13.042330)')),
 (2, 1, 'Kempapura', 35, ST_GeogFromText('SRID=4326;POINT(77.600525 13.043922)')),
-(2, 1, 'Hebbala Bridge', 36, ST_GeogFromText('SRID=4326;POINT(77.593747 13.041949)'));
+(2, 1, 'Hebbala Bridge', 36, ST_GeogFromText('SRID=4326;POINT(77.593747 13.041949)'))
+ON CONFLICT (direction_id, stop_order) DO NOTHING;
 
--- Nightly cleanup job (run manually or via cron):
--- DELETE FROM location_pings WHERE recorded_at < now() - INTERVAL '6 hours';
+INSERT INTO routes (route_id, route_number, source, destination)
+VALUES (2, '304', 'Tin Factory', 'Chikka Tirupathi')
+ON CONFLICT (route_number) DO NOTHING;
+
+INSERT INTO routes_direction (direction_id, route_id, direction, source, destination)
+VALUES
+(3, 2, 'UP', 'Tin Factory', 'Chikka Tirupathi'),
+(4, 2, 'DOWN', 'Chikka Tirupathi', 'Tin Factory')
+ON CONFLICT (route_id, direction) DO NOTHING;
+
+INSERT INTO stops (direction_id, route_id, stop_name, stop_order, location) VALUES
+(3, 2, 'Tin Factory', 1, ST_GeogFromText('SRID=4326;POINT(77.669175 12.996729)')),
+(3, 2, 'KR Puram Railway Station', 2, ST_GeogFromText('SRID=4326;POINT(77.676048 13.000296)')),
+(3, 2, 'B Narayanapura', 3, ST_GeogFromText('SRID=4326;POINT(77.684139 12.995896)')),
+(3, 2, 'Mahadevapura', 4, ST_GeogFromText('SRID=4326;POINT(77.690412 12.990421)')),
+(3, 2, 'Singayyanapalya', 5, ST_GeogFromText('SRID=4326;POINT(77.702518 12.989211)')),
+(3, 2, 'Garudacharpalya', 6, ST_GeogFromText('SRID=4326;POINT(77.708815 12.988014)')),
+(3, 2, 'Hoodi Junction', 7, ST_GeogFromText('SRID=4326;POINT(77.716124 12.991205)')),
+(3, 2, 'Rajapalya', 8, ST_GeogFromText('SRID=4326;POINT(77.728912 12.988514)')),
+(3, 2, 'Big Bazaar ITPL', 9, ST_GeogFromText('SRID=4326;POINT(77.737115 12.987019)')),
+(3, 2, 'Pattandur Agrahara Gate', 10, ST_GeogFromText('SRID=4326;POINT(77.743120 12.987211)')),
+(3, 2, 'ITPL Gate 3', 11, ST_GeogFromText('SRID=4326;POINT(77.749012 12.986615)')),
+(3, 2, 'GR Tech Park', 12, ST_GeogFromText('SRID=4326;POINT(77.753314 12.988812)')),
+(3, 2, 'BPL', 13, ST_GeogFromText('SRID=4326;POINT(77.756218 12.989516)')),
+(3, 2, 'Hope Farm Junction', 14, ST_GeogFromText('SRID=4326;POINT(77.759912 12.988319)')),
+(3, 2, 'MVJ College of Engineering', 15, ST_GeogFromText('SRID=4326;POINT(77.766115 12.984014)')),
+(3, 2, 'Channasandra (Whitefield)', 16, ST_GeogFromText('SRID=4326;POINT(77.761000 12.991800)')),
+(3, 2, 'Thirumalashettyhalli Cross', 17, ST_GeogFromText('SRID=4326;POINT(77.781800 12.983200)')),
+(3, 2, 'Samethanahalli', 18, ST_GeogFromText('SRID=4326;POINT(77.801500 12.962800)')),
+(3, 2, 'Bodana Hosahalli', 19, ST_GeogFromText('SRID=4326;POINT(77.809100 12.955400)')),
+(3, 2, 'Dunnasandra', 20, ST_GeogFromText('SRID=4326;POINT(77.818400 12.949200)')),
+(3, 2, 'Anugondanahalli Cross', 21, ST_GeogFromText('SRID=4326;POINT(77.825200 12.943100)')),
+(3, 2, 'Anugondanahalli', 22, ST_GeogFromText('SRID=4326;POINT(77.829000 12.936000)')),
+(3, 2, 'Medi Mallasandra', 23, ST_GeogFromText('SRID=4326;POINT(77.834800 12.928300)')),
+(3, 2, 'Kalkunte Agrahara', 24, ST_GeogFromText('SRID=4326;POINT(77.848100 12.915200)')),
+(3, 2, 'Yettukodi', 25, ST_GeogFromText('SRID=4326;POINT(77.856800 12.906100)')),
+(3, 2, 'Chikka Tirupathi', 26, ST_GeogFromText('SRID=4326;POINT(77.865100 12.898800)'))
+ON CONFLICT (direction_id, stop_order) DO NOTHING;
+
+INSERT INTO stops (direction_id, route_id, stop_name, stop_order, location) VALUES
+(4, 2, 'Chikka Tirupathi', 1, ST_GeogFromText('SRID=4326;POINT(77.865100 12.898800)')),
+(4, 2, 'Yettukodi', 2, ST_GeogFromText('SRID=4326;POINT(77.856800 12.906100)')),
+(4, 2, 'Kalkunte Agrahara', 3, ST_GeogFromText('SRID=4326;POINT(77.848100 12.915200)')),
+(4, 2, 'Medi Mallasandra', 4, ST_GeogFromText('SRID=4326;POINT(77.834800 12.928300)')),
+(4, 2, 'Anugondanahalli', 5, ST_GeogFromText('SRID=4326;POINT(77.829000 12.936000)')),
+(4, 2, 'Anugondanahalli Cross', 6, ST_GeogFromText('SRID=4326;POINT(77.825200 12.943100)')),
+(4, 2, 'Dunnasandra', 7, ST_GeogFromText('SRID=4326;POINT(77.818400 12.949200)')),
+(4, 2, 'Bodana Hosahalli', 8, ST_GeogFromText('SRID=4326;POINT(77.809100 12.955400)')),
+(4, 2, 'Samethanahalli', 9, ST_GeogFromText('SRID=4326;POINT(77.801500 12.962800)')),
+(4, 2, 'Thirumalashettyhalli Cross', 10, ST_GeogFromText('SRID=4326;POINT(77.781800 12.983200)')),
+(4, 2, 'Channasandra (Whitefield)', 11, ST_GeogFromText('SRID=4326;POINT(77.761000 12.991800)')),
+(4, 2, 'MVJ College of Engineering', 12, ST_GeogFromText('SRID=4326;POINT(77.766115 12.984014)')),
+(4, 2, 'Hope Farm Junction', 13, ST_GeogFromText('SRID=4326;POINT(77.759912 12.988319)')),
+(4, 2, 'BPL', 14, ST_GeogFromText('SRID=4326;POINT(77.756218 12.989516)')),
+(4, 2, 'GR Tech Park', 15, ST_GeogFromText('SRID=4326;POINT(77.753314 12.988812)')),
+(4, 2, 'ITPL Gate 3', 16, ST_GeogFromText('SRID=4326;POINT(77.749012 12.986615)')),
+(4, 2, 'Pattandur Agrahara Gate', 17, ST_GeogFromText('SRID=4326;POINT(77.743120 12.987211)')),
+(4, 2, 'Big Bazaar ITPL', 18, ST_GeogFromText('SRID=4326;POINT(77.737115 12.987019)')),
+(4, 2, 'Rajapalya', 19, ST_GeogFromText('SRID=4326;POINT(77.728912 12.988514)')),
+(4, 2, 'Hoodi Junction', 20, ST_GeogFromText('SRID=4326;POINT(77.716124 12.991205)')),
+(4, 2, 'Garudacharpalya', 21, ST_GeogFromText('SRID=4326;POINT(77.708815 12.988014)')),
+(4, 2, 'Singayyanapalya', 22, ST_GeogFromText('SRID=4326;POINT(77.702518 12.989211)')),
+(4, 2, 'Mahadevapura', 23, ST_GeogFromText('SRID=4326;POINT(77.690412 12.990421)')),
+(4, 2, 'B Narayanapura', 24, ST_GeogFromText('SRID=4326;POINT(77.684139 12.995896)')),
+(4, 2, 'KR Puram Railway Station', 25, ST_GeogFromText('SRID=4326;POINT(77.676048 13.000296)')),
+(4, 2, 'Tin Factory', 26, ST_GeogFromText('SRID=4326;POINT(77.669175 12.996729)'))
+ON CONFLICT (direction_id, stop_order) DO NOTHING;
+
+SELECT setval('routes_route_id_seq', (SELECT COALESCE(MAX(route_id), 1) FROM routes));
+SELECT setval('routes_direction_direction_id_seq', (SELECT COALESCE(MAX(direction_id), 1) FROM routes_direction));
+SELECT setval('stops_stop_id_seq', (SELECT COALESCE(MAX(stop_id), 1) FROM stops));
