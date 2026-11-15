@@ -1,162 +1,438 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="theme-color" content="#f6f9fc" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <title>BMTC 500D — Morning Transit</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+  <meta name="theme-color" content="#f4f8fc">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+  <title>BMTC Live Transit</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="manifest" href="/manifest.json" />
-  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1048/1048314.png" />
-  <link rel="stylesheet" href="css/style.css" />
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap"
+    rel="stylesheet"
+  >
+
+  <link rel="manifest" href="/manifest.json">
+<link rel="stylesheet" href="/style.css">
 </head>
+
 <body>
-  <div class="morning-ambient"></div>
-  
-  <div class="app-viewport">
-    <!-- Morning Header -->
-    <header class="morning-header">
-      <div class="header-content">
-        <div class="brand-cluster">
-          <div class="brand-bus-badge" title="BMTC 500D">
-            <!-- Modern Minimalist Bus SVG Icon -->
-            <svg class="bus-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="4" y="3" width="16" height="15" rx="3" />
-              <path d="M4 11h16" />
-              <path d="M8 7h.01M16 7h.01" />
-              <path d="M6 18v2a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-2" />
-              <path d="M15 18v2a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-2" />
-              <circle cx="8" cy="14" r="1" fill="currentColor" />
-              <circle cx="16" cy="14" r="1" fill="currentColor" />
-            </svg>
+
+  <div class="page-glow"></div>
+
+  <div class="app">
+
+    <header class="header">
+
+      <div class="brand">
+
+        <div class="brand-icon">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect x="4" y="3" width="16" height="15" rx="3"></rect>
+            <path d="M4 11h16"></path>
+            <path d="M8 7h.01"></path>
+            <path d="M16 7h.01"></path>
+            <path d="M6 18v2"></path>
+            <path d="M18 18v2"></path>
+            <circle cx="8" cy="14" r="1"></circle>
+            <circle cx="16" cy="14" r="1"></circle>
+          </svg>
+        </div>
+
+        <div class="brand-copy">
+          <div class="brand-route">
+            BMTC <span id="brand-route">500D</span>
           </div>
-          <div class="brand-titles">
-            <h1>BMTC <span>500D</span></h1>
-            <p>Fresh Morning Transit</p>
+
+          <div class="brand-subtitle" id="brand-subtitle">
+            Fresh Morning Transit
           </div>
         </div>
 
-        <div class="header-status">
-          <div class="live-pill" id="live-indicator">
-            <span class="sun-dot"></span>
-            <span>LIVE COMMUTE</span>
-          </div>
+      </div>
+
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <button id="pwa-install-btn" type="button" style="display: none; padding: 6px 12px; font-size: 11px; font-weight: 700; color: #ffffff; background: #2563eb; border: none; border-radius: 999px; cursor: pointer; align-items: center; gap: 4px; box-shadow: 0 2px 8px rgba(37,99,235,0.4);">
+          ⬇ Install App
+        </button>
+        <div class="live-pill" id="live-indicator">
+          <span class="live-dot"></span>
+          LIVE COMMUTE
         </div>
       </div>
+
     </header>
 
-    <!-- Main Content -->
-    <main class="morning-main">
-      <section class="console-column">
-        <!-- Quick Insight Cards -->
-        <div class="kpi-deck">
-          <div class="glass-surface kpi-card">
-            <span class="kpi-label">Route Span</span>
-            <span class="kpi-metric">22.7 <small>km</small></span>
+
+    <main class="main-layout">
+
+      <section class="left-column">
+
+        <div class="stats-grid">
+
+          <div class="stat-card">
+            <span class="stat-label">ROUTE SPAN</span>
+
+            <div class="stat-value">
+              <span id="route-distance">22.7</span>
+              <small>km</small>
+            </div>
           </div>
-          <div class="glass-surface kpi-card">
-            <span class="kpi-label">Corridor Stops</span>
-            <span class="kpi-metric" id="total-stops">36 <small>stops</small></span>
+
+
+          <div class="stat-card">
+            <span class="stat-label">CORRIDOR STOPS</span>
+
+            <div class="stat-value">
+              <span id="total-stops">36</span>
+              <small>stops</small>
+            </div>
           </div>
-          <div class="glass-surface kpi-card">
-            <span class="kpi-label">Morning Flow</span>
-            <span class="kpi-metric text-fresh" id="beacon-status">ACTIVE</span>
+
+
+          <div class="stat-card">
+            <span class="stat-label">MORNING FLOW</span>
+
+            <div
+              class="stat-value active-text"
+              id="beacon-status"
+            >
+              ACTIVE
+            </div>
           </div>
+
         </div>
 
-        <!-- Direction Switcher -->
-        <div class="direction-dock glass-surface">
-          <button class="dir-toggle active" id="t1">
-            <span>Hebbal ➔ Silk Board</span>
-          </button>
-          <button class="dir-toggle" id="t2">
-            <span>Silk Board ➔ Hebbal</span>
-          </button>
-        </div>
 
-        <!-- Stop Selector Panel -->
-        <div class="glass-surface selector-panel">
-          <div class="input-duo">
-            <div class="input-shell">
-              <label><span class="indicator-ring ring-origin"></span> Boarding Point</label>
+        <div class="control-card">
+
+          <div class="route-tabs">
+
+            <button
+              class="route-tab active"
+              id="route-500"
+              type="button"
+            >
+              Route 500D
+            </button>
+
+            <button
+              class="route-tab"
+              id="route-304"
+              type="button"
+            >
+              Route 304
+            </button>
+
+          </div>
+
+
+          <div class="direction-tabs">
+
+            <button
+              class="direction-tab active"
+              id="t1"
+              type="button"
+            >
+              <span id="dir1-label">
+                Hebbal → Silk Board
+              </span>
+            </button>
+
+            <button
+              class="direction-tab"
+              id="t2"
+              type="button"
+            >
+              <span id="dir2-label">
+                Silk Board → Hebbal
+              </span>
+            </button>
+
+          </div>
+
+
+          <div class="selectors">
+
+            <div class="field">
+
+              <label for="sel-b">
+                <span class="field-dot boarding-dot"></span>
+                BOARDING POINT
+              </label>
+
               <select id="sel-b">
-                <option value="">Where are you boarding?</option>
+                <option value="">
+                  Where are you boarding?
+                </option>
               </select>
+
             </div>
-            <div class="input-shell">
-              <label><span class="indicator-ring ring-dest"></span> Destination</label>
+
+
+            <div class="field">
+
+              <label for="sel-d">
+                <span class="field-dot destination-dot"></span>
+                DESTINATION
+              </label>
+
               <select id="sel-d">
-                <option value="">Where are you heading?</option>
+                <option value="">
+                  Where are you heading?
+                </option>
               </select>
+
             </div>
+
           </div>
-          <button class="morning-button" id="eta-btn">
+
+
+          <button
+            class="eta-button"
+            id="eta-btn"
+            type="button"
+          >
             <span>Check Live Arrival</span>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+
+            <svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M5 12h14"></path>
+              <path d="m13 6 6 6-6 6"></path>
+            </svg>
           </button>
+
         </div>
 
-        <!-- ETA Result Console -->
-        <div class="glass-surface eta-console" id="eta-card">
-          <div class="eta-meta-bar">
-            <div>
-              <span class="sub-label">Bus Currently Approaching</span>
-              <h4 class="bus-location-name" id="bus-at">—</h4>
+
+        <div
+          class="eta-card"
+          id="eta-card"
+        >
+
+          <div class="eta-top">
+
+            <div class="eta-left">
+
+              <div class="live-track">
+                LIVE TRACK
+              </div>
+
+              <div class="approaching">
+                Approaching:
+                <strong id="bus-at">—</strong>
+              </div>
+
             </div>
-            <span class="tag-morning">EN ROUTE</span>
+
+
+            <div class="eta-big">
+
+              <span id="eta-b">—</span>
+
+              <small>MIN</small>
+
+            </div>
+
           </div>
 
-          <div class="eta-hero-stat">
-            <div class="eta-counter" id="eta-b">—</div>
-            <div class="eta-hero-caption">Minutes until arrival at <strong id="lbl-b">—</strong></div>
+
+          <div class="eta-divider"></div>
+
+
+          <div class="eta-bottom">
+
+            <div class="eta-place">
+
+              <span>BOARD</span>
+
+              <strong id="lbl-b">—</strong>
+
+            </div>
+
+
+            <div class="eta-arrow">
+              →
+            </div>
+
+
+            <div class="eta-place destination-place">
+
+              <span>DESTINATION</span>
+
+              <strong id="lbl-d">—</strong>
+
+              <small id="eta-d">—</small>
+
+            </div>
+
           </div>
 
-          <div class="eta-detail-strip">
-            <div class="detail-row">
-              <span class="text-dim">Destination Station</span>
-              <span class="text-prominent" id="lbl-d">—</span>
-            </div>
-            <div class="detail-row">
-              <span class="text-dim">Destination ETA</span>
-              <span class="text-prominent text-accent" id="eta-d">—</span>
-            </div>
-          </div>
         </div>
 
-        <!-- Offline / Standby Notice -->
-        <div class="glass-surface standby-message" id="nodata">
-          <div class="standby-glyph">🌤️</div>
-          <p>No active bus broadcast found on this segment.<br>Share your live location to help morning commuters.</p>
+
+        <div
+          class="no-data-card show"
+          id="nodata"
+        >
+
+          <div class="weather-icon">
+            🌤️
+          </div>
+
+          <div class="no-data-title">
+            No active bus broadcast found on this segment.
+          </div>
+
+          <div class="no-data-text">
+            Share your live location to help morning commuters.
+          </div>
+
         </div>
+
+
+        <button
+  id="gps-btn"
+  type="button"
+  style="
+    display: flex !important;
+    width: 100% !important;
+    min-height: 52px !important;
+    margin-top: 14px !important;
+    padding: 14px 16px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 10px !important;
+    color: #ffffff !important;
+    background: #2f9b72 !important;
+    border: none !important;
+    border-radius: 13px !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    z-index: 100 !important;
+  "
+>
+  <span
+    id="gps-ico"
+    style="
+      width: 10px;
+      height: 10px;
+      display: inline-block;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background: #ffffff;
+    "
+  ></span>
+
+  <span id="gps-lbl">
+    Broadcast My Location
+  </span>
+</button>
+
       </section>
 
-      <!-- Stops Sequence Timeline -->
-      <section class="timeline-column">
-        <div class="glass-surface timeline-vault">
+
+      <section class="right-column">
+
+        <div class="timeline-card">
+
           <div class="timeline-header">
-            <h3>Route Progression</h3>
-            <span class="timeline-counter">Morning Schedule</span>
+
+            <div>
+
+              <h2>
+                Route Progression
+              </h2>
+
+              <span id="timeline-caption">
+                Hebbal → Silk Board
+              </span>
+
+            </div>
+
+
+            <span
+              class="timeline-route"
+              id="timeline-route"
+            >
+              500D
+            </span>
+
           </div>
-          <div class="timeline-scroll" id="rlist"></div>
+
+
+          <div
+            class="timeline-list"
+            id="rlist"
+          ></div>
+
         </div>
+
       </section>
+
     </main>
 
-    <!-- Bottom Location Action Bar -->
-    <footer class="morning-footer">
-      <div class="footer-container">
-        <button class="broadcast-trigger" id="gps-btn">
-          <span class="gps-pulse" id="gps-ico"></span>
-          <span id="gps-lbl">Broadcast Bus Location</span>
-        </button>
-      </div>
-    </footer>
   </div>
 
-  <script src="js/app.js"></script>
+
+    <footer style="margin: 2rem 0 1rem; padding: 1.5rem 1rem; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid rgba(255,255,255,0.06);">
+      <p>BMTC Live Transit &bull; Real-time Bengaluru Commute Tracker</p>
+    </footer>
+
+  <script>
+    // PWA Service Worker Registration
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').then((reg) => {
+          console.log('BMTC PWA active with scope:', reg.scope);
+        }).catch((err) => {
+          console.log('Service Worker registration note:', err);
+        });
+      });
+    }
+
+    // Native Chrome PWA Install Prompt Handler
+    let deferredPrompt;
+    const installBtn = document.getElementById('pwa-install-btn');
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      if (installBtn) {
+        installBtn.style.display = 'inline-flex';
+        installBtn.addEventListener('click', async () => {
+          installBtn.style.display = 'none';
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          console.log('User PWA install choice:', outcome);
+          deferredPrompt = null;
+        });
+      }
+    });
+  </script>
+  <script src="/js/app.js"></script>
 </body>
 </html>
